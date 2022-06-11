@@ -109,6 +109,15 @@ clean distclean:
 	sed 's,\($*\)\.o[ :]*,\1.so $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
+%fa250_list.d: %list.c
+	@echo " DEP    $@"
+	${Q}set -e; rm -f $@; \
+	$(CC) -MM -shared  $(INCS) $(CFLAGS) -DUSE_FA250 \
+		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) $< > $@.$$$$; \
+	sed 's,\(.*\)\.o[ :]*,$(@:.d=).so $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+
 -include $(DEPS)
 
 .PHONY: all
