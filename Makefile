@@ -99,7 +99,7 @@ all:  $(VMEROL) $(SOBJS)
 		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) -o $@ $<
 
 clean distclean:
-	${Q}rm -f  $(VMEROL) $(SOBJS) $(CFILES) *~ $(DEPS) $(DEPS) *.d.*
+	${Q}rm -f  $(VMEROL) $(SOBJS) $(CFILES) *~ $(DEPS) *.d.*
 
 %.d: %.c
 	@echo " DEP    $@"
