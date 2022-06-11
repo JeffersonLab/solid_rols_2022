@@ -20,7 +20,8 @@ else
 endif
 
 # Plug in your primary readout lists here.. CRL are found automatically
-VMEROL	= ti_list.so ti_fa250_list.so
+VMEROL	= ti_list.so ti_fa250_list.so ti_ssp_list.so ti_fa250_ssp_list.so
+
 # Add shared library dependencies here.  (jvme, ti, are already included)
 ROLLIBS	= -lfadc -lmpd -lssp
 
@@ -82,9 +83,19 @@ all:  $(VMEROL) $(SOBJS)
 	${Q}$(CC) -fpic -shared  $(CFLAGS) $(INCS) $(LIBS) -DTI_MASTER \
 		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) -o $@ $<
 
-%fa250_list.so: %list.c
+ti_fa250_list.so: ti_list.c
 	@echo " CC     $@"
 	${Q}$(CC) -fpic -shared  $(CFLAGS) $(INCS) $(LIBS) -DTI_MASTER -DUSE_FA250 \
+		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) -o $@ $<
+
+ti_ssp_list.so: ti_list.c
+	@echo " CC     $@"
+	${Q}$(CC) -fpic -shared  $(CFLAGS) $(INCS) $(LIBS) -DTI_MASTER -DUSE_SSP_MPD \
+		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) -o $@ $<
+
+ti_fa250_ssp_list.so: ti_list.c
+	@echo " CC     $@"
+	${Q}$(CC) -fpic -shared  $(CFLAGS) $(INCS) $(LIBS) -DTI_MASTER -DUSE_FA250 -DUSE_SSP_MPD \
 		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) -o $@ $<
 
 %slave_list.so: %list.c
@@ -109,10 +120,26 @@ clean distclean:
 	sed 's,\($*\)\.o[ :]*,\1.so $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-%fa250_list.d: %list.c
+ti_fa250_list.d: ti_list.c
 	@echo " DEP    $@"
 	${Q}set -e; rm -f $@; \
 	$(CC) -MM -shared  $(INCS) $(CFLAGS) -DUSE_FA250 \
+		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) $< > $@.$$$$; \
+	sed 's,\(.*\)\.o[ :]*,$(@:.d=).so $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+ti_ssp_list.d: ti_list.c
+	@echo " DEP    $@"
+	${Q}set -e; rm -f $@; \
+	$(CC) -MM -shared  $(INCS) $(CFLAGS) -DUSE_SSP_MPD \
+		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) $< > $@.$$$$; \
+	sed 's,\(.*\)\.o[ :]*,$(@:.d=).so $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+ti_fa250_ssp_list.d: ti_list.c
+	@echo " DEP    $@"
+	${Q}set -e; rm -f $@; \
+	$(CC) -MM -shared  $(INCS) $(CFLAGS) -DUSE_FA250 -DUSE_SSP_MPD \
 		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) $< > $@.$$$$; \
 	sed 's,\(.*\)\.o[ :]*,$(@:.d=).so $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$

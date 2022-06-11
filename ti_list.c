@@ -27,6 +27,7 @@
 /* Measured longest fiber length in system */
 #define FIBER_LATENCY_OFFSET 0x4A
 
+#include <unistd.h>
 #include "dmaBankTools.h"   /* Macros for handling CODA banks */
 #include "tiprimary_list.c" /* Source required for CODA readout lists using the TI */
 #include "sdLib.h"
@@ -35,6 +36,9 @@
 #include "fa250_rol_include.c"
 #endif
 
+#ifdef USE_SSP_MPD
+#include "ssp_mpd_rol_include.c"
+#endif
 
 /* Define initial blocklevel and buffering level */
 #define BLOCKLEVEL 1
@@ -118,6 +122,10 @@ rocDownload()
   fa250_Download(NULL);
 #endif
 
+#ifdef USE_SSP_MPD
+  sspMpd_Download(NULL);
+#endif
+
   printf("rocDownload: User Download Executed\n");
 
 }
@@ -130,9 +138,15 @@ rocPrestart()
 {
 
   tiStatus(0);
+
 #ifdef USE_FA250
   fa250_Prestart();
 #endif
+
+#ifdef USE_SSP_MPD
+  sspMpd_Prestart();
+#endif
+
 
   printf("rocPrestart: User Prestart Executed\n");
 
@@ -213,6 +227,9 @@ rocGo()
   fa250_Go();
 #endif
 
+#ifdef USE_SSP_MPD
+  sspMpd_Go();
+#endif
 
 }
 
@@ -275,6 +292,10 @@ rocTrigger(int arg)
   fa250_Trigger(arg);
 #endif
 
+#ifdef USE_SSP_MPD
+  sspMpd_Trigger(arg);
+#endif
+
   if(tiGetSyncEventFlag() == 1)
     {
       /* Check for data available */
@@ -313,11 +334,16 @@ rocCleanup()
 #ifdef USE_FA250
   fa250_Cleanup();
 #endif
+
+#ifdef USE_SSP_MPD
+  sspMpd_Cleanup();
+#endif
+
 }
 
 
 /*
   Local Variables:
-  compile-command: "make -k -B ti_list.so"
+  compile-command: "make -k ti_list.so"
   End:
  */

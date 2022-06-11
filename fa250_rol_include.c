@@ -107,14 +107,13 @@ void
 fa250_Go()
 {
   int32_t fadc_mode = 0;
-  uint32_t pl=0, ptw=0, nsb=0, nsa=0, np=0;
+  uint32_t blocklevel = 0, pl=0, ptw=0, nsb=0, nsa=0, np=0;
+
 
   /* Get the current block level */
-  blockLevel = tiGetCurrentBlockLevel();
-  printf("%s: Current Block Level = %d\n",
-	 __FUNCTION__,blockLevel);
+  blocklevel = tiGetCurrentBlockLevel();
 
-  faGSetBlockLevel(blockLevel);
+  faGSetBlockLevel(blocklevel);
 
   /* Get the FADC mode and window size to determine max data size */
   faGetProcMode(faSlot(0), &fadc_mode, &pl, &ptw,
@@ -127,7 +126,7 @@ fa250_Go()
              ) +
      scaler readout # 16 channels + header/trailer
    */
-  MAXFADCWORDS = nfadc * (4 + blockLevel * (4 + 16 * (1 + (ptw / 2))) + 18);
+  MAXFADCWORDS = nfadc * (4 + blocklevel * (4 + 16 * (1 + (ptw / 2))) + 18);
 
   /*  Enable FADC */
   faGEnable(0, 0);
@@ -243,6 +242,6 @@ fa250_Cleanup()
 
 /*
   Local Variables:
-  compile-command: "make -k ti_fa250_list.so"
+  compile-command: "make -k ti_fa250_list.so ti_fa250_ssp_list.so"
   End:
  */
