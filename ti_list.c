@@ -8,7 +8,8 @@
 
 /* Event Buffer definitions */
 #define MAX_EVENT_POOL     10
-#define MAX_EVENT_LENGTH   1024*64      /* Size in Bytes */
+//#define MAX_EVENT_LENGTH   1024*64      /* Size in Bytes */
+#define MAX_EVENT_LENGTH   16000*64      /* Size in Bytes */
 
 /* TI_MASTER / TI_SLAVE defined in Makefile */
 #ifdef TI_MASTER
@@ -108,7 +109,7 @@ rocDownload()
 #endif
 
   /* Init the SD library so we can get status info */
-  stat = sdInit(0);
+  stat = sdInit(SD_INIT_IGNORE_VERSION);
   if(stat==0)
     {
       sdSetActiveVmeSlots(0);
@@ -208,7 +209,7 @@ rocGo()
       if(rocTriggerSource == 1)
 	{
 	  /* Enable Random at rate 500kHz/(2^7) = ~3.9kHz */
-	  tiSetRandomTrigger(1,0x7);
+	  tiSetRandomTrigger(1,0xf);
 	}
 
       if(rocTriggerSource == 2)
@@ -340,6 +341,42 @@ rocCleanup()
 #endif
 
 }
+/*
+  Routine to configure pedestal subtraction mode
+  0 : subtraction mode DISABLED
+  1 : subtraction mode ENABLED
+*/
+
+void
+rocSetTriggerSource(int source)
+{
+#ifdef TI_MASTER
+  if(TIPRIMARYflag == 1)
+    {
+      printf("%s: ERROR: Trigger Source already enabled.  Ignoring change to %d.\n",
+	     __func__, source);
+    }
+  else
+    {
+      rocTriggerSource = source;
+
+      if(rocTriggerSource == 0)
+	{
+	  tiSetTriggerSource(TI_TRIGGER_TSINPUTS); /* TS Inputs enabled */
+	}
+      else
+	{
+	  tiSetTriggerSource(TI_TRIGGER_PULSER); /* Internal Pulser */
+	}
+
+      daLogMsg("INFO","Setting trigger source (%d)", rocTriggerSource);
+    }
+#else
+  printf("%s: ERROR: TI is not Master  Ignoring change to %d.\n",
+	 __func__, source);
+#endif
+}
+
 
 
 /*

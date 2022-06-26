@@ -19,7 +19,9 @@ int last_soft_err_cnt[32];
 
 /* ssp defs */
 int SSP_READOUT=1;
-int32_t SSP_MAX_EVENT_LENGTH=32000*12*1;     //SSP block length
+//int32_t SSP_MAX_EVENT_LENGTH=32000*12*1;     //SSP block length
+int32_t SSP_MAX_EVENT_LENGTH=64000;     //SSP block length
+
 extern int sspSoftReset(int id);
 extern int sspMpdGetSoftErrorCount(int id, int fiber);
 
@@ -359,13 +361,13 @@ void ssp_mpd_setup()
   /*****************
    *   SSP SETUP
    *****************/
-  sspA32Base = 0x09000000;
+  sspA32Base = 0x08800000;
   int iFlag = 0, issp=0;
   int sspFiberBit = 0;
   uint32_t sspFiberMaskToInit;
 
 
-  if(sspMpdConfigInit("/home/sbs-onl/bbgem-cfg/ssp_config.cfg") == ERROR)
+  if(sspMpdConfigInit("/home/solid/gem-cfg/ssp_config_hallc.cfg") == ERROR)
     {
       daLogMsg("ERROR","Error in configuration file");
       return;
@@ -373,7 +375,8 @@ void ssp_mpd_setup()
 
   sspMpdConfigLoad();
 
-  iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | SSP_INIT_MODE_VXS | 0xFFFF0000;
+  //iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000; // original
+  iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // ben's debug
 
   sspInit(20<<19,1<<19,1,iFlag);
 
@@ -942,6 +945,7 @@ sspMpd_Trigger(int arg)
 #endif
 
   int i;
+int xb_debug;
 
   if (ssp_timeout == ssp_timeout_max )
     {
@@ -956,8 +960,16 @@ sspMpd_Trigger(int arg)
       sspMpdPrintStatus(0);
       sspPrintMPD_OB_STATUS(1);
       sspMpdDalogStatus(0, mpdGetSSPFiberMask(sspSlot(0)));
+      printf("xb_debug mpdGStatus============================================\n");
       mpdGStatus(1);
+      printf("xb_debug sspPrintEbStatus============================================\n");
       sspPrintEbStatus(0);
+      //printf("xb_debug sspPrintScalers(0)============================================\n");
+      //sspPrintScalers(0);
+      //printf("xb_debug sspStatus(0, 1)============================================\n");
+      //sspStatus(0, 1);
+ 
+      //scanf("@@@@@@@@@@@@@@xb_debug end %d", &xb_debug);
       //      printf("*** Dumping ssp mpd monitor sspMpdMonDump()\n");
       //      sspMpdMonDump(0,7);
       //      printf("*** sspMpdMonDump() ends\n");
@@ -1160,8 +1172,8 @@ sspMpd_Trigger(int arg)
 
   if(errorCount > 10)
     {
-      printf("errorCount = %d.   Too many errors.  Stopping TI triggers\n",errorCount);
-      tiSetBlockLimit(1);
+      //printf("errorCount = %d.   Too many errors.  Stopping TI triggers\n",errorCount);
+      //tiSetBlockLimit(1); //  original
     }
 
 }

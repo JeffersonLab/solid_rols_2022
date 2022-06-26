@@ -23,7 +23,7 @@ endif
 VMEROL	= ti_list.so ti_fa250_list.so ti_ssp_list.so ti_fa250_ssp_list.so
 
 # Add shared library dependencies here.  (jvme, ti, are already included)
-ROLLIBS	= -lfadc -lmpd -lssp
+ROLLIBS	= -lfadc -lmpd -lssp -lconfig
 
 ifdef CODA_VME
 INC_CODA_VME	= -isystem${CODA_VME}/include
@@ -33,8 +33,8 @@ ifdef CODA_VME_LIB
 LIB_CODA_VME	= -L${CODA_VME_LIB}
 endif
 
-LINUXVME_LIB	?= .
-LINUXVME_INC	?= .
+LINUXVME_LIB	= ../linuxvme/Linux-x86_64/lib
+LINUXVME_INC	= ../linuxvme/include
 
 # DEFs for compiling primary readout lists
 CC			= gcc

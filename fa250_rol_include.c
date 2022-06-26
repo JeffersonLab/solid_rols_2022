@@ -1,3 +1,4 @@
+#pragma once
 /*************************************************************************
  *
  *  fa250_rol_include.c -
@@ -14,7 +15,7 @@
 /* FADC Library Variables */
 extern int32_t nfadc;
 extern uint32_t fadcA32Base;
-#define NFADC     1
+#define NFADC     18
 /* Address of first fADC250 */
 #define FADC_ADDR (3<<19)
 /* Increment address to find next fADC250 */
@@ -22,8 +23,8 @@ extern uint32_t fadcA32Base;
 #define FADC_BANK 0x3
 
 #define FADC_READ_CONF_FILE {			\
-    fadc250Config("");				\
-    if(configFilename)				\
+    fadc250Config("/home/solid/sbsvme22/cfg/fa250/sbsvme22.cnf");	\
+    if(configFilename)							\
       fadc250Config(configFilename);		\
   }
 
