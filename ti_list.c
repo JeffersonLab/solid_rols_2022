@@ -45,6 +45,19 @@
 #define BLOCKLEVEL 1
 #define BUFFERLEVEL 5
 
+
+typedef struct
+{
+  int enable;       // enable (1) / disable (0)
+  int interval;     // 1 sync event every <interval> events
+  int pedestal;     // disable (0) / Disable after <pedestal> sync events
+  int current;      // sync event counter for pedestal feature
+  int pulser_arg1;  // fixed pulser <period> argument.  Units of 120ns.
+} TI_SYNCEVENT_CONFIG;
+
+TI_SYNCEVENT_CONFIG tiSyncEventConfig = {1, 1000, 100, 0, 83};
+
+
 /*
   Global to configure the trigger source
   0 : tsinputs
@@ -116,6 +129,21 @@ rocDownload()
       sdStatus(0);
     }
 
+  /* Sync Event / Pedestal Config */
+  printf("%s:  tiSyncEventConfig:   SyncEvent %s\n", __func__,
+	 (tiSyncEventConfig.enable) ? "Enabled" : "Disabled");
+
+  if(tiSyncEventConfig.enable)
+    {
+      tiSetSyncEventInterval(tiSyncEventConfig.interval);
+
+      printf("\tinterval = %d\n", tiSyncEventConfig.interval);
+
+      if(tiSyncEventConfig.pedestal > 0)
+	{
+	  printf("\tpedestal for first %d sync events\n", tiSyncEventConfig.pedestal);
+	}
+    }
 
   tiStatus(0);
 
@@ -222,6 +250,23 @@ rocGo()
 	  tiSoftTrig(1,0xffff,100,0);
 	}
     }
+  else
+    {
+      /* Check for pedestal configuration */
+      if(tiSyncEventConfig.pedestal > 1)
+	{
+	  unsigned int trigenable;
+	  trigenable  = TI_TRIGSRC_VME | TI_TRIGSRC_LOOPBACK;
+	  trigenable |= TI_TRIGSRC_TSINPUTS;
+	  trigenable |= TI_TRIGSRC_PULSER;
+	  tiSetTriggerSourceMask(trigenable);
+
+	  tiSyncEventConfig.current = 0;
+
+	  tiSoftTrig(1, 0xffff, tiSyncEventConfig.pulser_arg1, 0);
+	}
+    }
+
 #endif
 
 #ifdef USE_FA250
@@ -299,6 +344,20 @@ rocTrigger(int arg)
 
   if(tiGetSyncEventFlag() == 1)
     {
+      /* Update counter */
+      tiSyncEventConfig.current++;
+
+      if(tiSyncEventConfig.current >= tiSyncEventConfig.pedestal)
+	{
+	  /* Disable pulser */
+	  tiSoftTrig(1, 0, 0, 0);
+	}
+      else
+	{
+	  /* Make sure it continues */
+	  tiSoftTrig(1, 0xffff, tiSyncEventConfig.pulser_arg1, 0);
+	}
+
       /* Check for data available */
       int davail = tiBReady();
       if(davail > 0)
