@@ -11,6 +11,7 @@
 #include "mpdConfig.h"
 #include "sspMpdConfig.h"
 #include "sspLib.h"
+#include "sspLib_mpd.h"
 
 extern int nSSP;
 extern unsigned int sspA32Base;
@@ -86,13 +87,16 @@ sspMpdDalogStatus(int id, unsigned int fmask)
   MPD_regs *mr;
   int ifiber=0;
   extern volatile SSP_regs *pSSP[MAX_VME_SLOTS+1];
-  extern int sspID[MAX_VME_SLOTS+1];
+  extern volatile SSP_MPD_regs *pMPD[MAX_VME_SLOTS+1];
+  extern int sspSL[MAX_VME_SLOTS+1];
+
+
 
   mr = (MPD_regs *)malloc(32*sizeof(MPD_regs));
   printf("fmask = 0x%08x\n", fmask);
 
 
-  if(id==0) id=sspID[0];
+  if(id==0) id=sspSL[0];
   if((id<=0) || (id>21) || (pSSP[id]==NULL))
     {
       printf("%s: ERROR: SSP in slot %d not initialized\n",__FUNCTION__,id);
@@ -101,9 +105,10 @@ sspMpdDalogStatus(int id, unsigned int fmask)
 
   for(ifiber=0; ifiber<32; ifiber++)
     {
-      mr[ifiber].Ctrl   = vmeRead32(&pSSP[id]->MPD[ifiber].Ctrl);
-      mr[ifiber].Status = vmeRead32(&pSSP[id]->MPD[ifiber].Status);
-      mr[ifiber].EBCtrl = vmeRead32(&pSSP[id]->MPD[ifiber].EBCtrl);
+      pMPD[id] = (SSP_MPD_regs *)((unsigned long)pSSP[id]);
+      mr[ifiber].Ctrl   = vmeRead32(&pMPD[id]->MPD[ifiber].Ctrl);
+      mr[ifiber].Status = vmeRead32(&pMPD[id]->MPD[ifiber].Status);
+      mr[ifiber].EBCtrl = vmeRead32(&pMPD[id]->MPD[ifiber].EBCtrl);
     }
 
   DALMA_INIT;
@@ -784,7 +789,6 @@ sspMpd_Download(char *configFilename)
 {
   printf("%s: Build date/time %s/%s\n", __func__, __DATE__, __TIME__);
 
-
   /* Check usrString for pedestal subtraction mode */
   if(strcmp("SSPPedSub",rol->usrString) == 0)
     {
@@ -968,7 +972,7 @@ int xb_debug;
       //sspPrintScalers(0);
       //printf("xb_debug sspStatus(0, 1)============================================\n");
       //sspStatus(0, 1);
- 
+
       //scanf("@@@@@@@@@@@@@@xb_debug end %d", &xb_debug);
       //      printf("*** Dumping ssp mpd monitor sspMpdMonDump()\n");
       //      sspMpdMonDump(0,7);

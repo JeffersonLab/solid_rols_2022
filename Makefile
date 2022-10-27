@@ -33,8 +33,8 @@ ifdef CODA_VME_LIB
 LIB_CODA_VME	= -L${CODA_VME_LIB}
 endif
 
-LINUXVME_LIB	= ../linuxvme/Linux-x86_64/lib
-LINUXVME_INC	= ../linuxvme/include
+LINUXVME_LIB	?= ../linuxvme/Linux-x86_64/lib
+LINUXVME_INC	?= ../linuxvme/include
 
 # DEFs for compiling primary readout lists
 CC			= gcc
