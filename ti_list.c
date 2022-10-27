@@ -56,6 +56,8 @@ typedef struct
 } TI_SYNCEVENT_CONFIG;
 
 TI_SYNCEVENT_CONFIG tiSyncEventConfig = {1, 1000, 100, 0, 83};
+//TI_SYNCEVENT_CONFIG tiSyncEventConfig = {0, 1000, 0, 0, 83}; // disable pulser trigger
+
 
 
 /*
@@ -103,7 +105,9 @@ rocDownload()
     }
 
   /* Enable set specific TS input bits (1-6) */
-  tiEnableTSInput( TI_TSINPUT_1 | TI_TSINPUT_2 );
+  //tiEnableTSInput( TI_TSINPUT_1 | TI_TSINPUT_2 );
+  tiEnableTSInput( TI_TSINPUT_1 | TI_TSINPUT_2 | TI_TSINPUT_3); 
+  //tiEnableTSInput( TI_TSINPUT_ALL );
 
   /* Load the trigger table that associates
    *  pins 21/22 | 23/24 | 25/26 : trigger1
@@ -119,6 +123,13 @@ rocDownload()
 
   /* Set Trigger Buffer Level */
   tiSetBlockBufferLevel(BUFFERLEVEL);
+
+  /*Set prescale for each TS#*/
+  tiSetInputPrescale(1,0);
+  tiSetInputPrescale(2,0);
+  tiSetInputPrescale(3,1);
+  tiSetInputPrescale(4,0);
+
 #endif
 
   /* Init the SD library so we can get status info */
