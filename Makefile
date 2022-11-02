@@ -20,7 +20,8 @@ else
 endif
 
 # Plug in your primary readout lists here.. CRL are found automatically
-VMEROL	= ti_list.so ti_fa250_list.so ti_ssp_list.so ti_fa250_ssp_list.so ti_fa250_ssp_maroc_list.so
+VMEROL	= ti_list.so ti_fa250_list.so ti_ssp_list.so ti_maroc_list.so
+VMEROL += ti_fa250_ssp_list.so ti_fa250_ssp_maroc_list.so
 
 # Add shared library dependencies here.  (jvme, ti, are already included)
 ROLLIBS	= -lfadc -lmpd -lssp -lconfig
@@ -93,6 +94,11 @@ ti_ssp_list.so: ti_list.c
 	${Q}$(CC) -fpic -shared  $(CFLAGS) $(INCS) $(LIBS) -DTI_MASTER -DUSE_SSP_MPD \
 		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) -o $@ $<
 
+ti_maroc_list.so: ti_list.c
+	@echo " CC     $@"
+	${Q}$(CC) -fpic -shared  $(CFLAGS) $(INCS) $(LIBS) -DTI_MASTER -DUSE_SSP_MAROC \
+		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) -o $@ $<
+
 ti_fa250_ssp_list.so: ti_list.c
 	@echo " CC     $@"
 	${Q}$(CC) -fpic -shared  $(CFLAGS) $(INCS) $(LIBS) -DTI_MASTER -DUSE_FA250 -DUSE_SSP_MPD \
@@ -137,6 +143,14 @@ ti_ssp_list.d: ti_list.c
 	@echo " DEP    $@"
 	${Q}set -e; rm -f $@; \
 	$(CC) -MM -shared  $(INCS) $(CFLAGS) -DUSE_SSP_MPD \
+		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) $< > $@.$$$$; \
+	sed 's,\(.*\)\.o[ :]*,$(@:.d=).so $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+ti_maroc_list.d: ti_list.c
+	@echo " DEP    $@"
+	${Q}set -e; rm -f $@; \
+	$(CC) -MM -shared  $(INCS) $(CFLAGS) -DUSE_SSP_MAROC \
 		-DINIT_NAME=$(@:.so=__init) -DINIT_NAME_POLL=$(@:.so=__poll) $< > $@.$$$$; \
 	sed 's,\(.*\)\.o[ :]*,$(@:.d=).so $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$

@@ -42,7 +42,7 @@ sspMaroc_Download()
 void
 sspMaroc_Prestart()
 {
-  unsigned short iFlag;
+  unsigned int iFlag;
   int id, SSP_SLOT;
 
   /*****************
