@@ -41,6 +41,10 @@
 #include "ssp_mpd_rol_include.c"
 #endif
 
+#ifdef USE_SSP_MAROC
+#include "ssp_maroc_rol_include.c"
+#endif
+
 /* Define initial blocklevel and buffering level */
 #define BLOCKLEVEL 1
 #define BUFFERLEVEL 5
@@ -106,7 +110,7 @@ rocDownload()
 
   /* Enable set specific TS input bits (1-6) */
   //tiEnableTSInput( TI_TSINPUT_1 | TI_TSINPUT_2 );
-  tiEnableTSInput( TI_TSINPUT_1 | TI_TSINPUT_2 | TI_TSINPUT_3); 
+  tiEnableTSInput( TI_TSINPUT_1 | TI_TSINPUT_2 | TI_TSINPUT_3);
   //tiEnableTSInput( TI_TSINPUT_ALL );
 
   /* Load the trigger table that associates
@@ -166,6 +170,10 @@ rocDownload()
   sspMpd_Download(NULL);
 #endif
 
+#ifdef USE_SSP_MAROC
+  sspMaroc_Download(NULL);
+#endif
+
   printf("rocDownload: User Download Executed\n");
 
 }
@@ -187,6 +195,9 @@ rocPrestart()
   sspMpd_Prestart();
 #endif
 
+#ifdef USE_SSP_MAROC
+  sspMaroc_Prestart();
+#endif
 
   printf("rocPrestart: User Prestart Executed\n");
 
@@ -288,6 +299,9 @@ rocGo()
   sspMpd_Go();
 #endif
 
+#ifdef USE_SSP_MAROC
+  sspMaroc_Go();
+#endif
 }
 
 /****************************************
@@ -353,6 +367,10 @@ rocTrigger(int arg)
   sspMpd_Trigger(arg);
 #endif
 
+#ifdef USE_SSP_MAROC
+  sspMaroc_Trigger(arg);
+#endif
+
   if(tiGetSyncEventFlag() == 1)
     {
       /* Update counter */
@@ -408,6 +426,10 @@ rocCleanup()
 
 #ifdef USE_SSP_MPD
   sspMpd_Cleanup();
+#endif
+
+#ifdef USE_SSP_MAROC
+  sspMaroc_Cleanup();
 #endif
 
 }

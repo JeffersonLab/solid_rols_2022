@@ -13,6 +13,9 @@
 #include "sspLib.h"
 #include "sspLib_mpd.h"
 
+#define SSP_MPD_BANK 10
+#define SSP_MPD_SLOT 20
+
 extern int nSSP;
 extern unsigned int sspA32Base;
 
@@ -63,15 +66,15 @@ sspSetPedSubtractionMode(int enable)
 /* Buffer to store daLogMsg's */
 int dalma_rval, dalma_tot;
 
-#define DALMA_INIT {				\
-  dalma_tot = 0;				\
-  bufp = (char *) &(apvbuffer[0]);		\
-  dalma_rval = sprintf (bufp,"\n");					\
-  if(dalma_rval > 0) {bufp += dalma_rval; dalma_tot += dalma_rval;}}
+#define DALMA_INIT {							\
+    dalma_tot = 0;							\
+    bufp = (char *) &(apvbuffer[0]);					\
+    dalma_rval = sprintf (bufp,"\n");					\
+    if(dalma_rval > 0) {bufp += dalma_rval; dalma_tot += dalma_rval;}}
 
 #define DALMA_MSG(x...)	{						\
-  dalma_rval = sprintf(bufp, x);					\
-  if(dalma_rval > 0) {bufp += dalma_rval; dalma_tot += dalma_rval;}}
+    dalma_rval = sprintf(bufp, x);					\
+    if(dalma_rval > 0) {bufp += dalma_rval; dalma_tot += dalma_rval;}}
 
 #define DALMA_LOG {				\
     if(dalma_tot > 1)				\
@@ -153,7 +156,7 @@ sspMpdDalogStatus(int id, unsigned int fmask)
 	DALMA_MSG("---    ");
 
       DALMA_MSG("%s\n",
-	    (mr[ifiber].EBCtrl & MPD_EBCTRL_ENABLE)?"ENABLED ":"DISABLED");
+		(mr[ifiber].EBCtrl & MPD_EBCTRL_ENABLE)?"ENABLED ":"DISABLED");
 
 
       if( (ifiber % 16) == 15 )
@@ -210,32 +213,32 @@ void sspPrintMPD_OB_STATUS(int dalogFlag){
     DALMA_MSG(" %2d     ", mpdSlot(k));
 
     DALMA_MSG("%4d  ",
-		    r.evb_fifo_word_count & 0xFFFF);
+	      r.evb_fifo_word_count & 0xFFFF);
 
     DALMA_MSG("%d %d    ",
-		    (r.evb_fifo_word_count & (1<<17) ? 1 : 0),
-		    (r.evb_fifo_word_count & (1<<16) ? 1 : 0));
+	      (r.evb_fifo_word_count & (1<<17) ? 1 : 0),
+	      (r.evb_fifo_word_count & (1<<16) ? 1 : 0));
 
     DALMA_MSG("%d %d %d %d    ",
-		    (r.evb_fifo_word_count & (1<<27) ? 1 : 0),
-		    (r.evb_fifo_word_count & (1<<26) ? 1 : 0),
-		    (r.evb_fifo_word_count & (1<<25) ? 1 : 0),
-		    (r.evb_fifo_word_count & (1<<24) ? 1 : 0));
+	      (r.evb_fifo_word_count & (1<<27) ? 1 : 0),
+	      (r.evb_fifo_word_count & (1<<26) ? 1 : 0),
+	      (r.evb_fifo_word_count & (1<<25) ? 1 : 0),
+	      (r.evb_fifo_word_count & (1<<24) ? 1 : 0));
 
     DALMA_MSG("%3d  ",
-		    r.block_count & 0xFF);
+	      r.block_count & 0xFF);
 
     DALMA_MSG("%8d  ",
-		    r.event_count & 0xFFFFFF);
+	      r.event_count & 0xFFFFFF);
 
     DALMA_MSG("%8d  ",
-		    r.trigger_count);
+	      r.trigger_count);
 
     DALMA_MSG("%8d  ",
-		    r.missed_trigger);
+	      r.missed_trigger);
 
     DALMA_MSG("%8d",
-		    r.incoming_trigger);
+	      r.incoming_trigger);
 
     DALMA_MSG("\n");
 
@@ -267,32 +270,32 @@ void sspPrintMPD_OB_STATUS(int dalogFlag){
     DALMA_MSG(" %2d    ", mpdSlot(k));
 
     DALMA_MSG("0x%7x  %d  ",
-		    r.sdram_fifo_wr_addr & 0x1FFFFFF,
-		    (r.sdram_fifo_wr_addr & (1<<31)) ? 1 : 0
-		    );
+	      r.sdram_fifo_wr_addr & 0x1FFFFFF,
+	      (r.sdram_fifo_wr_addr & (1<<31)) ? 1 : 0
+	      );
 
     DALMA_MSG("0x%7x  %d         ",
-		    r.sdram_fifo_rd_addr & 0x1FFFFFF,
-		    (r.sdram_fifo_rd_addr & (1<<31)) ? 1 : 0
-		    );
+	      r.sdram_fifo_rd_addr & 0x1FFFFFF,
+	      (r.sdram_fifo_rd_addr & (1<<31)) ? 1 : 0
+	      );
 
     DALMA_MSG("%s  ",
-		    (r.sdram_flag_wc & (1<<31)) ? "YES" : " no"
-		    );
+	      (r.sdram_flag_wc & (1<<31)) ? "YES" : " no"
+	      );
 
     DALMA_MSG("0x%7x   ",
-		    r.sdram_flag_wc & 0x1FFFFFF
-		    );
+	      r.sdram_flag_wc & 0x1FFFFFF
+	      );
 
     DALMA_MSG("%d %d  %4d  ",
-		    (r.output_buffer_flag_wc & (1<<31) ) ? 1 : 0,
-		    (r.output_buffer_flag_wc & (1<<30) ) ? 1 : 0,
-		    r.output_buffer_flag_wc & 0x1FFF
-		    );
+	      (r.output_buffer_flag_wc & (1<<31) ) ? 1 : 0,
+	      (r.output_buffer_flag_wc & (1<<30) ) ? 1 : 0,
+	      r.output_buffer_flag_wc & 0x1FFF
+	      );
 
     DALMA_MSG("0x%8x",
-		    r.latched_full
-		    );
+	      r.latched_full
+	      );
 
     DALMA_MSG("\n");
   }
@@ -380,100 +383,115 @@ void ssp_mpd_setup()
 
   sspMpdConfigLoad();
 
+#ifndef __SSP_INIT__
+#define __SSP_INIT__
+  /* This is in all ssp_*_list.c, so make sure it's only called once */
+
+  extern unsigned int sspAddrList[MAX_VME_SLOTS+1];
+
+  sspAddrList[0] = 13<<19;
+  sspAddrList[1] = 20<<19;
+
+  iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // ben's debug
+  iFlag |= SSP_INIT_USE_ADDRLIST;
+  iFlag |= SSP_INIT_MODE_VXS;
+
+  sspInit(0, 0, 0, iFlag); /* Scan for, and initialize all SSPs in crate */
+  printf("%s: found %d SSPs (using iFlag=0x%08x)\n",
+	 __func__, nSSP,iFlag);
+
+#endif // __SSP_INIT__
+
+#ifdef OLDSTUFF
   //iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000; // original
   iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // ben's debug
 
   sspInit(20<<19,1<<19,1,iFlag);
-
-  sspMpdFiberReset(0);
-  sspMpdFiberLinkReset(0,0xffffffff);
-
-
-  for(issp=0; issp<nSSP; issp++)
-    {
-      sspCheckAddresses(sspSlot(issp));
-      sspMpdDisable(sspSlot(issp), 0xffffffff);
-#ifdef NO_MPD_TEST
-      continue;
 #endif
-      sspFiberMaskToInit = mpdGetSSPFiberMask(sspSlot(issp));
-      printf("sspSlot: %d, mask: 0x%08x", sspSlot(issp), sspFiberMaskToInit);
 
-      while(sspFiberMaskToInit != 0){
-	if((sspFiberMaskToInit & 0x1) == 1)
-	  sspMpdEnable(sspSlot(issp), 0x1 << sspFiberBit);
-	sspFiberMaskToInit = sspFiberMaskToInit >> 1;
-	++sspFiberBit;
-      }
+  sspMpdFiberReset(SSP_MPD_SLOT);
+  sspMpdFiberLinkReset(SSP_MPD_SLOT, 0xffffffff);
 
 
-      int build_all_samples = 1;
-      //1 => For pedestal run, will write ADC samples from the APV (i.e. disable zero suppression)
-      //0 => will apply the threshold and peak position logic to decide if data is written to the event (i.e. zero suppression enabled)
+  sspMpdDisable(SSP_MPD_SLOT, 0xffffffff);
+  sspFiberMaskToInit = mpdGetSSPFiberMask(SSP_MPD_SLOT);
+  printf("sspSlot: %d, mask: 0x%08x", SSP_MPD_SLOT, sspFiberMaskToInit);
 
-      int build_debug_headers = 0;
-      //1 => will write extra debugging info headers about the common-mode processing (which APV chip reported data, avg A/B values and counts for each APV)
-      //0 => disables extra debug info headers
-      int enable_cm = 0;
-      //1 => enables the common-mode subtraction logic
-      //0 => disables the common-mode subtraction logic (so raw ADC samples only have the channel offset applied)
-      int noprocessing_prescale = 100;
-      //0 => prescaling disabled (all events are processed)
-      //1-65535 => every Nth event has common-mode subtract and zero suppression disabled
+  while(sspFiberMaskToInit != 0){
+    if((sspFiberMaskToInit & 0x1) == 1)
+      sspMpdEnable(SSP_MPD_SLOT, 0x1 << sspFiberBit);
+    sspFiberMaskToInit = sspFiberMaskToInit >> 1;
+    ++sspFiberBit;
+  }
 
-      sspMpdEbSetFlags(sspSlot(issp), build_all_samples, build_debug_headers,
-		       enable_cm, noprocessing_prescale);
 
-      sspEnableBusError(sspSlot(issp));
+  int build_all_samples = 1;
+  //1 => For pedestal run, will write ADC samples from the APV (i.e. disable zero suppression)
+  //0 => will apply the threshold and peak position logic to decide if data is written to the event (i.e. zero suppression enabled)
 
-      //char* mpdSlot[10],apvId[10],cModeMin[10],cModeMax[10];
-      int sspSlotID, mpdSlot, apvId, cModeMin, cModeMax;
-      int fiberID = -1, last_mpdSlot = -1;
-      //FILE *fcommon   = fopen("/home/sbs-onl/cfg/CommonModeRange.txt","r");
-      //FILE *fcommon   = NULL;
-      FILE *fcommon   = fopen("/home/sbs-onl/cfg/CommonModeRange_747.txt","r");
+  int build_debug_headers = 0;
+  //1 => will write extra debugging info headers about the common-mode processing (which APV chip reported data, avg A/B values and counts for each APV)
+  //0 => disables extra debug info headers
+  int enable_cm = 0;
+  //1 => enables the common-mode subtraction logic
+  //0 => disables the common-mode subtraction logic (so raw ADC samples only have the channel offset applied)
+  int noprocessing_prescale = 100;
+  //0 => prescaling disabled (all events are processed)
+  //1-65535 => every Nth event has common-mode subtract and zero suppression disabled
 
-      //valid pedestal file => will load APV offset file and subtract from APV samples
-      //NULL => will load 0's for all APV offsets
-      //FILE *fpedestal = fopen("/home/sbs-onl/cfg/pedestal.txt","r");
-      //FILE *fpedestal = fopen("/home/sbs-onl/cfg/pedestal_test.txt","r");    //Test file with offset set to -1000 in fiber 15, apv 11, channel 10
-      FILE *fpedestal = fopen("/home/sbs-onl/cfg/gem_ped_747.dat","r");//all GEMs
-      //FILE *fpedestal = NULL;
+  sspMpdEbSetFlags(SSP_MPD_SLOT, build_all_samples, build_debug_headers,
+		   enable_cm, noprocessing_prescale);
 
-      // Load pedestal & threshold file settings
-      int stripNo;
-      float ped_offset, ped_rms;
-      char buf[10];
-      int i1, i2, i3, n;
-      char *line_ptr = NULL;
-      size_t line_len;
-      fiberID = -1, last_mpdSlot = -1;
-      if((fpedestal==NULL) || (sspPedSubtractionMode == 0)) {
+  sspEnableBusError(SSP_MPD_SLOT);
 
-	/* Correct sspPedSubtractionMode if fpedestal == NULL */
-	if(fpedestal==NULL) sspPedSubtractionMode = 0;
+  //char* mpdSlot[10],apvId[10],cModeMin[10],cModeMax[10];
+  int sspSlotID, apvId, cModeMin, cModeMax;
+  int fiberID = -1, last_mpdSlot = -1;
+  //FILE *fcommon   = fopen("/home/sbs-onl/cfg/CommonModeRange.txt","r");
+  //FILE *fcommon   = NULL;
+  FILE *fcommon   = fopen("/home/sbs-onl/cfg/CommonModeRange_747.txt","r");
 
-	for(fiberID=0; fiberID<16; fiberID++)
-        {
-          for(apvId=0; apvId<15; apvId++)
+  //valid pedestal file => will load APV offset file and subtract from APV samples
+  //NULL => will load 0's for all APV offsets
+  //FILE *fpedestal = fopen("/home/sbs-onl/cfg/pedestal.txt","r");
+  //FILE *fpedestal = fopen("/home/sbs-onl/cfg/pedestal_test.txt","r");    //Test file with offset set to -1000 in fiber 15, apv 11, channel 10
+  FILE *fpedestal = fopen("/home/sbs-onl/cfg/gem_ped_747.dat","r");//all GEMs
+  //FILE *fpedestal = NULL;
+
+  // Load pedestal & threshold file settings
+  int stripNo;
+  float ped_offset, ped_rms;
+  char buf[10];
+  int i1, i2, i3, n;
+  char *line_ptr = NULL;
+  size_t line_len;
+  fiberID = -1, last_mpdSlot = -1;
+  if((fpedestal==NULL) || (sspPedSubtractionMode == 0)) {
+
+    /* Correct sspPedSubtractionMode if fpedestal == NULL */
+    if(fpedestal==NULL) sspPedSubtractionMode = 0;
+
+    for(fiberID=0; fiberID<16; fiberID++)
+      {
+	for(apvId=0; apvId<15; apvId++)
           {
             for(stripNo=0; stripNo<128; stripNo++)
-            {
-              sspMpdSetApvOffset(sspSlot(issp), fiberID, apvId, stripNo, 0);
-	      sspMpdSetApvThreshold(sspSlot(issp), fiberID, apvId, stripNo, 0);
-            }
+	      {
+		sspMpdSetApvOffset(SSP_MPD_SLOT, fiberID, apvId, stripNo, 0);
+		sspMpdSetApvThreshold(SSP_MPD_SLOT, fiberID, apvId, stripNo, 0);
+	      }
           }
-        }
-	printf("no pedestal file or sspPedSubtractionmode == 0\n");
-      }else{
-	printf("trying to read pedestal \n");
+      }
+    printf("no pedestal file or sspPedSubtractionmode == 0\n");
+  }else{
+    printf("trying to read pedestal \n");
 
-	while(!feof(fpedestal))
-	{
-	  getline(&line_ptr, &line_len, fpedestal);
+    while(!feof(fpedestal))
+      {
+	getline(&line_ptr, &line_len, fpedestal);
 
-          n = sscanf(line_ptr, "%10s %d %d %d", buf, &i1, &i2, &i3);
-          if( (n == 4) && !strcmp("APV", buf))
+	n = sscanf(line_ptr, "%10s %d %d %d", buf, &i1, &i2, &i3);
+	if( (n == 4) && !strcmp("APV", buf))
           {
             sspSlotID = i1;
             fiberID = i2;
@@ -481,43 +499,42 @@ void ssp_mpd_setup()
             continue;
           }
 
-          n = sscanf(line_ptr, "%d %f %f", &stripNo, &ped_offset, &ped_rms);
-          if( (n == 3) && (sspSlot(issp) == sspSlotID) )
+	n = sscanf(line_ptr, "%d %f %f", &stripNo, &ped_offset, &ped_rms);
+	if( (n == 3) && (SSP_MPD_SLOT == sspSlotID) )
           {
-//            printf("sspSlot: %2d, fiberID: %2d, apvId %2d, stripNo: %3d, ped_offset: %4.0f ped_rms: %4.0f \n", sspSlotID, fiberID, apvId, stripNo, ped_offset, ped_rms);
-            sspMpdSetApvOffset(sspSlot(issp), fiberID, apvId, stripNo, (int)ped_offset);
-	    sspMpdSetApvThreshold(sspSlot(issp), fiberID, apvId, stripNo, 5*(int)ped_rms);
+	    //            printf("sspSlot: %2d, fiberID: %2d, apvId %2d, stripNo: %3d, ped_offset: %4.0f ped_rms: %4.0f \n", sspSlotID, fiberID, apvId, stripNo, ped_offset, ped_rms);
+            sspMpdSetApvOffset(SSP_MPD_SLOT, fiberID, apvId, stripNo, (int)ped_offset);
+	    sspMpdSetApvThreshold(SSP_MPD_SLOT, fiberID, apvId, stripNo, 5*(int)ped_rms);
           }
-	}
-	fclose(fpedestal);
       }
+    fclose(fpedestal);
+  }
 
-      // Load common-mode file settings
-      if(fcommon==NULL){
-	printf("no commonMode file\n");
-      }else{
-	printf("trying to read commonMode\n");
-	while(fscanf(fcommon, "%d %d %d %d", &fiberID, &apvId, &cModeMin, &cModeMax)==4){
-	  printf("fiberID %d %d %d %d \n", fiberID, apvId, cModeMin, cModeMax);
+  // Load common-mode file settings
+  if(fcommon==NULL){
+    printf("no commonMode file\n");
+  }else{
+    printf("trying to read commonMode\n");
+    while(fscanf(fcommon, "%d %d %d %d", &fiberID, &apvId, &cModeMin, &cModeMax)==4){
+      printf("fiberID %d %d %d %d \n", fiberID, apvId, cModeMin, cModeMax);
 
-//	  cModeMin = 200;
-//	  cModeMax = 800;
-//	  cModeMin = 0;
-//	  cModeMax = 4095;
-	  sspMpdSetAvg(0, fiberID, apvId, cModeMin, cModeMax);
-	}
-	fclose(fcommon);
-      }
-
-
+      //	  cModeMin = 200;
+      //	  cModeMax = 800;
+      //	  cModeMin = 0;
+      //	  cModeMax = 4095;
+      sspMpdSetAvg(SSP_MPD_SLOT, fiberID, apvId, cModeMin, cModeMax);
     }
-  sspSoftReset(0);
-  sspMigReset(0,1);
-  sspMigReset(0,0);
-//  sspPrintMigStatus(0);
+    fclose(fcommon);
+
+
+  }
+  sspSoftReset(SSP_MPD_SLOT);
+  sspMigReset(SSP_MPD_SLOT, 1);
+  sspMigReset(SSP_MPD_SLOT, 0);
+  //  sspPrintMigStatus(SSP_MPD_SLOT);
 
   sspGStatus(0);
-  sspMpdPrintStatus(0);
+  sspMpdPrintStatus(SSP_MPD_SLOT);
 #ifdef NO_MPD_TEST
   return;
 #endif
@@ -931,7 +948,7 @@ sspMpd_Trigger(int arg)
 
   vmeDmaConfig(2,5,1);
   /* Readout SSP */
-  BANKOPEN(10,BT_UI4,0);
+  BANKOPEN(SSP_MPD_BANK, BT_UI4, 0);
 
   ssp_timeout=0;
   int ssp_timeout_max=10000;
@@ -949,7 +966,7 @@ sspMpd_Trigger(int arg)
 #endif
 
   int i;
-int xb_debug;
+  int xb_debug;
 
   if (ssp_timeout == ssp_timeout_max )
     {
@@ -995,48 +1012,48 @@ int xb_debug;
       /* printf("*** Press Enter to start reset procedure***\n"); */
       /* getchar(); */
       /*
-      sspMpdFiberReset(0);
-      //tiSetBlockLimit(1);
+	sspMpdFiberReset(0);
+	//tiSetBlockLimit(1);
 
-      printf("*** Invoking sspMpdFiberReset()***\n");
-      sspMpdFiberReset(0);
-      printf("*** Invoking sspSoftReset() (tempararily skipped for testing)***\n");
-      // sspSoftReset(0);
+	printf("*** Invoking sspMpdFiberReset()***\n");
+	sspMpdFiberReset(0);
+	printf("*** Invoking sspSoftReset() (tempararily skipped for testing)***\n");
+	// sspSoftReset(0);
 
-      int i_re, k_re;
-      printf("*** Invoking MPD resets***\n");
-      for(k_re=0;k_re<fnMPD;k_re++)
-      {
-      i_re = mpdSlot(k_re);
-      mpdDAQ_Disable(i_re);
-      }
-      usleep(100);
-      for(k_re=0;k_re<fnMPD;k_re++)
-      {
-      i_re = mpdSlot(k_re);
-      // mpd latest configuration before trigger is enabled
-      mpdSetAcqMode(i_re, "process");
+	int i_re, k_re;
+	printf("*** Invoking MPD resets***\n");
+	for(k_re=0;k_re<fnMPD;k_re++)
+	{
+	i_re = mpdSlot(k_re);
+	mpdDAQ_Disable(i_re);
+	}
+	usleep(100);
+	for(k_re=0;k_re<fnMPD;k_re++)
+	{
+	i_re = mpdSlot(k_re);
+	// mpd latest configuration before trigger is enabled
+	mpdSetAcqMode(i_re, "process");
 
-      // load pedestal and thr default values
-      mpdPEDTHR_Write(i_re);
+	// load pedestal and thr default values
+	mpdPEDTHR_Write(i_re);
 
-      // enable acq
-      mpdDAQ_Enable(i_re);
+	// enable acq
+	mpdDAQ_Enable(i_re);
 
-      printf("Do 101 Reset on MPD slot %d\n",i);
-      mpdAPV_Reset101(i_re);
-      }
+	printf("Do 101 Reset on MPD slot %d\n",i);
+	mpdAPV_Reset101(i_re);
+	}
 
-      //sspSoftReset(0);
+	//sspSoftReset(0);
 
 
-      printf("\n\n*** Status of MPD and SSP after reset ***\n");
-      sspPrintMPD_OB_STATUS();
-      sspMpdPrintStatus(0);
-      mpdGStatus(1);
-      sspPrintEbStatus(0);
-      printf("*** Reset done!!! press enter to continue...*** \n ");
-      getchar();
+	printf("\n\n*** Status of MPD and SSP after reset ***\n");
+	sspPrintMPD_OB_STATUS();
+	sspMpdPrintStatus(0);
+	mpdGStatus(1);
+	sspPrintEbStatus(0);
+	printf("*** Reset done!!! press enter to continue...*** \n ");
+	getchar();
       */
     }
   else
@@ -1154,7 +1171,7 @@ int xb_debug;
     {
 #ifdef DEBUG_SYNC_CHECK
       printf("%s: (%d) Sync Event check\n",
-	   __func__, tiGetIntCount());
+	     __func__, tiGetIntCount());
 #endif
       sspGetEbStatus(0, &bc, &wc, &ec);
       if( (bc > 0) )//|| (wc > 0) || (ec > 0))
