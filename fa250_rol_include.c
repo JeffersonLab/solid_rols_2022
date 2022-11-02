@@ -47,7 +47,7 @@ fa250_Download(char* configFilename)
   iflag |= FA_INIT_VXS_TRIG;  /* VXS trigger source */
   iflag |= FA_INIT_VXS_CLKSRC;  /* VXS 250MHz Clock source */
 
-  fadcA32Base = 0x09000000;
+  fadcA32Base = 0x09800000;
 
   vmeSetQuietFlag(1);
   faInit(FADC_ADDR, FADC_INCR, NFADC, iflag);
