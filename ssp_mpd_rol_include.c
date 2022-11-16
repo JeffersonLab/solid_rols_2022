@@ -398,19 +398,23 @@ void ssp_mpd_setup()
       iFlag = 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // MPD SSP Uses it's local clock
       iFlag |= SSP_INIT_USE_ADDRLIST;
 
-      sspInit(0, 0, 0, iFlag); /* Scan for, and initialize all SSPs in crate */
+      sspInit(0, 0, 2, iFlag); /* Scan for, and initialize all SSPs in crate */
       printf("%s: found %d SSPs (using iFlag=0x%08x)\n",
 	 __func__, nSSP,iFlag);
 
-      /* Add SSP as Busy sources to TI.  Will not reset previous settings (reset=0) */
-      int32_t reset=0;
-      sdSetBusyVmeSlots(sspSlotMask(), reset);
+
     }
   else
     {
       printf("%s: SSPs previously initialized (%d)\n", __func__, nSSP);
       /* FIXME: Do MPD specific SSP init here... (check clock) */
     }
+
+#ifdef USE_SSP_BUSY
+  /* Add SSP as Busy sources to TI.  Will not reset previous settings (reset=0) */
+  int32_t reset=0;
+  sdSetBusyVmeSlots(1 << SSP_MPD_SLOT, reset);
+#endif /* USE_SSP_BUSY   */
 
 #ifdef OLDSTUFF
   //iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000; // original
@@ -910,9 +914,9 @@ sspMpd_Go()
 
 
   //sspSoftReset(0);
-  sspMpdPrintStatus(0);
+  sspMpdPrintStatus(SSP_MPD_SLOT);
 
-  sspMpdDalogStatus(0, mpdGetSSPFiberMask(sspSlot(0)));
+  sspMpdDalogStatus(SSP_MPD_SLOT, mpdGetSSPFiberMask(SSP_MPD_SLOT));
   /* Use this info to change block level is all modules */
 
 }
@@ -963,16 +967,16 @@ sspMpd_Trigger(int arg)
   ssp_timeout=0;
   int ssp_timeout_max=10000;
 
-  while ((sspBReady(0)==0) && (ssp_timeout<ssp_timeout_max))
+  while ((sspBReady(SSP_MPD_SLOT)==0) && (ssp_timeout<ssp_timeout_max))
     {
       ssp_timeout++;
 #ifdef DEBUG_TIMEOUT
-      sspPrintEbStatus(0);
+      sspPrintEbStatus(SSP_MPD_SLOT);
 #endif
     }
 
 #ifdef DEBUG_BREADY
-  sspPrintEbStatus(0);
+  sspPrintEbStatus(SSP_MPD_SLOT);
 #endif
 
   int i;
@@ -984,30 +988,30 @@ sspMpd_Trigger(int arg)
       daLogMsg("ERROR","SSP Timeout");
 
 
-      // sspMpdFiberReset(0);
-      //sspSoftReset(0);
+      // sspMpdFiberReset(SSP_MPD_SLOT);
+      //sspSoftReset(SSP_MPD_SLOT);
 
       printf("*** Status of MPD and SSP before reset ***\n");
-      sspMpdPrintStatus(0);
+      sspMpdPrintStatus(SSP_MPD_SLOT);
       sspPrintMPD_OB_STATUS(1);
-      sspMpdDalogStatus(0, mpdGetSSPFiberMask(sspSlot(0)));
+      sspMpdDalogStatus(SSP_MPD_SLOT, mpdGetSSPFiberMask(SSP_MPD_SLOT));
       printf("xb_debug mpdGStatus============================================\n");
       mpdGStatus(1);
       printf("xb_debug sspPrintEbStatus============================================\n");
-      sspPrintEbStatus(0);
+      sspPrintEbStatus(SSP_MPD_SLOT);
       //printf("xb_debug sspPrintScalers(0)============================================\n");
-      //sspPrintScalers(0);
+      //sspPrintScalers(SSP_MPD_SLOT);
       //printf("xb_debug sspStatus(0, 1)============================================\n");
-      //sspStatus(0, 1);
+      //sspStatus(SSP_MPD_SLOT, 1);
 
       //scanf("@@@@@@@@@@@@@@xb_debug end %d", &xb_debug);
       //      printf("*** Dumping ssp mpd monitor sspMpdMonDump()\n");
-      //      sspMpdMonDump(0,7);
+      //      sspMpdMonDump(SSP_MPD_SLOT,7);
       //      printf("*** sspMpdMonDump() ends\n");
       //vmeDmaConfig(2,5,1);
       printf("Trying to read w/e there are in ssp...\n");
-      sspGetEbStatus(0, &bc, &wc, &ec);
-      dCnt = sspReadBlock(0, dma_dabufp, wc,1);
+      sspGetEbStatus(SSP_MPD_SLOT, &bc, &wc, &ec);
+      dCnt = sspReadBlock(SSP_MPD_SLOT, dma_dabufp, wc,1);
       unsigned int *pBuf = (unsigned int *)dma_dabufp;
       printf("dCnt read: %d\n", dCnt);
       if(dCnt > 0)
@@ -1022,13 +1026,13 @@ sspMpd_Trigger(int arg)
       /* printf("*** Press Enter to start reset procedure***\n"); */
       /* getchar(); */
       /*
-	sspMpdFiberReset(0);
+	sspMpdFiberReset(SSP_MPD_SLOT);
 	//tiSetBlockLimit(1);
 
 	printf("*** Invoking sspMpdFiberReset()***\n");
-	sspMpdFiberReset(0);
+	sspMpdFiberReset(SSP_MPD_SLOT);
 	printf("*** Invoking sspSoftReset() (tempararily skipped for testing)***\n");
-	// sspSoftReset(0);
+	// sspSoftReset(SSP_MPD_SLOT);
 
 	int i_re, k_re;
 	printf("*** Invoking MPD resets***\n");
@@ -1054,14 +1058,14 @@ sspMpd_Trigger(int arg)
 	mpdAPV_Reset101(i_re);
 	}
 
-	//sspSoftReset(0);
+	//sspSoftReset(SSP_MPD_SLOT);
 
 
 	printf("\n\n*** Status of MPD and SSP after reset ***\n");
 	sspPrintMPD_OB_STATUS();
-	sspMpdPrintStatus(0);
+	sspMpdPrintStatus(SSP_MPD_SLOT);
 	mpdGStatus(1);
-	sspPrintEbStatus(0);
+	sspPrintEbStatus(SSP_MPD_SLOT);
 	printf("*** Reset done!!! press enter to continue...*** \n ");
 	getchar();
       */
@@ -1070,9 +1074,9 @@ sspMpd_Trigger(int arg)
     {
 #ifdef LOUD_MPD_READOUT
       printf("***This event doesn't have timeout, but printing data for checking\n");
-      sspPrintEbStatus(0);
+      sspPrintEbStatus(SSP_MPD_SLOT);
 #endif
-      dCnt = sspReadBlock(0, dma_dabufp, SSP_MAX_EVENT_LENGTH>>2,1);
+      dCnt = sspReadBlock(SSP_MPD_SLOT, dma_dabufp, SSP_MAX_EVENT_LENGTH>>2,1);
 #ifdef LOUD_MPD_READOUT
       unsigned int *pBuf = (unsigned int *)dma_dabufp;
       tcnt++;
@@ -1183,14 +1187,14 @@ sspMpd_Trigger(int arg)
       printf("%s: (%d) Sync Event check\n",
 	     __func__, tiGetIntCount());
 #endif
-      sspGetEbStatus(0, &bc, &wc, &ec);
+      sspGetEbStatus(SSP_MPD_SLOT, &bc, &wc, &ec);
       if( (bc > 0) )//|| (wc > 0) || (ec > 0))
 	{
 	  printf("%s: Error at sync event\n",
 		 __func__);
-	  sspPrintEbStatus(0);
+	  sspPrintEbStatus(SSP_MPD_SLOT);
 	}
-      int bready = sspBReady(0);
+      int bready = sspBReady(SSP_MPD_SLOT);
       if (bready > 0)
 	{
 	  printf("%s: Error at sync event\n",
@@ -1234,6 +1238,6 @@ setSSPData(int enable)
 
 /*
   Local Variables:
-  compile-command: "make -k ti_ssp_list.so ti_fa250_ssp_list.so"
+  compile-command: "make -k
   End:
 */

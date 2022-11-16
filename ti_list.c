@@ -134,7 +134,9 @@ rocDownload()
   tiSetInputPrescale(3,1);
   tiSetInputPrescale(4,0);
 
+
 #endif
+  tiSetEvTypeScalers(1);
 
   /* Init the SD library so we can get status info */
   stat = sdInit(SD_INIT_IGNORE_VERSION);
@@ -378,8 +380,9 @@ rocTrigger(int arg)
 
       if(tiSyncEventConfig.current >= tiSyncEventConfig.pedestal)
 	{
+	  static int32_t doOnce = 0;
 	  /* Disable pulser */
-	  tiSoftTrig(1, 0, 0, 0);
+	  if(doOnce++ == 1) tiSoftTrig(1, 0, 0, 0);
 	}
       else
 	{
@@ -473,6 +476,6 @@ rocSetTriggerSource(int source)
 
 /*
   Local Variables:
-  compile-command: "make -k ti_list.so"
+  compile-command: "make -k"
   End:
  */

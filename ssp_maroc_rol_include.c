@@ -63,7 +63,7 @@ sspMaroc_Prestart()
       iFlag = 0xFFFF0000 | SSP_INIT_MODE_VXS; // MAROC SSP Uses clock from TI
       iFlag |= SSP_INIT_USE_ADDRLIST;
 
-      sspInit(0, 0, 0, iFlag); /* Scan for, and initialize all SSPs in crate */
+      sspInit(0, 0, 2, iFlag); /* Scan for, and initialize all SSPs in crate */
       printf("%s: found %d SSPs (using iFlag=0x%08x)\n",
 	 __func__, nSSP,iFlag);
 
