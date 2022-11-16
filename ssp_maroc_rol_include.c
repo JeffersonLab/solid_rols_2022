@@ -9,13 +9,17 @@
 #include "sspLib.h"
 #include "sspConfig.h"
 
-#define SSP_MAROC_BANK 18
+#ifndef SSP_MAROC_SLOT
 #define SSP_MAROC_SLOT 13
+#endif
+#ifndef SSP_MPD_SLOT
+#define SSP_MPD_SLOT 20
+#endif
+#define SSP_MAROC_BANK 18
 
 extern int nSSP;
 extern unsigned int sspA32Base;
 
-static int nssp;   /* Number of SSPs found with sspInit(..) */
 static int ssp_not_ready_errors[21];
 
 const char *rol_usrConfig = "/home/solid/sbsvme22/bryan/ssp/test/sbsvme22.cnf";
@@ -48,24 +52,30 @@ sspMaroc_Prestart()
   /*****************
    *   SSP SETUP
    *****************/
-#ifndef __SSP_INIT__
-#define __SSP_INIT__
-  /* This is in all ssp_*_list.c, so make sure it's only called once */
 
-  extern unsigned int sspAddrList[MAX_VME_SLOTS+1];
+  if(nSSP <= 0)
+    {
+      extern unsigned int sspAddrList[MAX_VME_SLOTS+1];
 
-  sspAddrList[0] = 13<<19;
-  sspAddrList[1] = 20<<19;
+      sspAddrList[0] = SSP_MAROC_SLOT << 19;
+      sspAddrList[1] = SSP_MPD_SLOT << 19;
 
-  iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // ben's debug
-  iFlag |= SSP_INIT_USE_ADDRLIST;
-  iFlag |= SSP_INIT_MODE_VXS;
+      iFlag = 0xFFFF0000 | SSP_INIT_MODE_VXS; // MAROC SSP Uses clock from TI
+      iFlag |= SSP_INIT_USE_ADDRLIST;
 
-  sspInit(0, 0, 0, iFlag); /* Scan for, and initialize all SSPs in crate */
-  printf("%s: found %d SSPs (using iFlag=0x%08x)\n",
+      sspInit(0, 0, 0, iFlag); /* Scan for, and initialize all SSPs in crate */
+      printf("%s: found %d SSPs (using iFlag=0x%08x)\n",
 	 __func__, nSSP,iFlag);
 
-#endif // __SSP_INIT__
+      /* Add SSP as Busy sources to TI.  Will not reset previous settings (reset=0) */
+      int32_t reset=0;
+      sdSetBusyVmeSlots(sspSlotMask(), reset);
+    }
+  else
+    {
+      printf("%s: SSPs previously initialized (%d)\n", __func__, nSSP);
+      /* FIXME: Do MAROC specific SSP init here... (check clock), FiberScan */
+    }
 
   if(nSSP>0)
     {
@@ -73,10 +83,6 @@ sspMaroc_Prestart()
       printf("=======================> sspSlotMask=0x%08x\n",sspSlotMask());
 
     }
-
-  /* FIXME: Maybe just add self to the Busy list */
-  /* sdInit(0); */
-  /* sdSetActiveVmeSlots(sspSlotMask()); */
 
   printf("%s: Prestart Executed\n",
 	 __func__);

@@ -13,8 +13,13 @@
 #include "sspLib.h"
 #include "sspLib_mpd.h"
 
-#define SSP_MPD_BANK 10
+#ifndef SSP_MAROC_SLOT
+#define SSP_MAROC_SLOT 13
+#endif
+#ifndef SSP_MPD_SLOT
 #define SSP_MPD_SLOT 20
+#endif
+#define SSP_MPD_BANK 10
 
 extern int nSSP;
 extern unsigned int sspA32Base;
@@ -383,24 +388,29 @@ void ssp_mpd_setup()
 
   sspMpdConfigLoad();
 
-#ifndef __SSP_INIT__
-#define __SSP_INIT__
-  /* This is in all ssp_*_list.c, so make sure it's only called once */
+  if(nSSP <= 0)
+    {
+      extern unsigned int sspAddrList[MAX_VME_SLOTS+1];
 
-  extern unsigned int sspAddrList[MAX_VME_SLOTS+1];
+      sspAddrList[0] = SSP_MAROC_SLOT << 19;
+      sspAddrList[1] = SSP_MPD_SLOT << 19;
 
-  sspAddrList[0] = 13<<19;
-  sspAddrList[1] = 20<<19;
+      iFlag = 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // MPD SSP Uses it's local clock
+      iFlag |= SSP_INIT_USE_ADDRLIST;
 
-  iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // ben's debug
-  iFlag |= SSP_INIT_USE_ADDRLIST;
-  iFlag |= SSP_INIT_MODE_VXS;
-
-  sspInit(0, 0, 0, iFlag); /* Scan for, and initialize all SSPs in crate */
-  printf("%s: found %d SSPs (using iFlag=0x%08x)\n",
+      sspInit(0, 0, 0, iFlag); /* Scan for, and initialize all SSPs in crate */
+      printf("%s: found %d SSPs (using iFlag=0x%08x)\n",
 	 __func__, nSSP,iFlag);
 
-#endif // __SSP_INIT__
+      /* Add SSP as Busy sources to TI.  Will not reset previous settings (reset=0) */
+      int32_t reset=0;
+      sdSetBusyVmeSlots(sspSlotMask(), reset);
+    }
+  else
+    {
+      printf("%s: SSPs previously initialized (%d)\n", __func__, nSSP);
+      /* FIXME: Do MPD specific SSP init here... (check clock) */
+    }
 
 #ifdef OLDSTUFF
   //iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000; // original
