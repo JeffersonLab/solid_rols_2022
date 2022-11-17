@@ -119,6 +119,7 @@ rocDownload()
    */
   tiLoadTriggerTable(0);
 
+  /* Specific settings for MPD in ssp_mpd_rol_include.c */
   tiSetTriggerHoldoff(1,10,0);
   tiSetTriggerHoldoff(2,10,0);
 
@@ -131,8 +132,8 @@ rocDownload()
   /*Set prescale for each TS#*/
   tiSetInputPrescale(1,0);
   tiSetInputPrescale(2,0);
-  tiSetInputPrescale(3,1);
-  tiSetInputPrescale(4,0);
+  tiSetInputPrescale(3,8);
+  //tiSetInputPrescale(4,0);
 
 
 #endif

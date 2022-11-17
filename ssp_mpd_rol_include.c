@@ -85,9 +85,9 @@ int dalma_rval, dalma_tot;
     if(dalma_tot > 1)				\
       daLogMsg("INFO",apvbuffer);}
 
-char *apvbuffer;
-char *errorbuffer;
-char *bufp;
+static char *apvbuffer = NULL;
+static char *errorbuffer = NULL;
+static char *bufp = NULL;
 
 int
 sspMpdDalogStatus(int id, unsigned int fmask)
@@ -410,19 +410,6 @@ void ssp_mpd_setup()
       /* FIXME: Do MPD specific SSP init here... (check clock) */
     }
 
-#ifdef USE_SSP_BUSY
-  /* Add SSP as Busy sources to TI.  Will not reset previous settings (reset=0) */
-  int32_t reset=0;
-  sdSetBusyVmeSlots(1 << SSP_MPD_SLOT, reset);
-#endif /* USE_SSP_BUSY   */
-
-#ifdef OLDSTUFF
-  //iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000; // original
-  iFlag = SSP_INIT_SKIP_FIRMWARE_CHECK | 0xFFFF0000 | SSP_INIT_MODE_VXSLOCAL; // ben's debug
-
-  sspInit(20<<19,1<<19,1,iFlag);
-#endif
-
   sspMpdFiberReset(SSP_MPD_SLOT);
   sspMpdFiberLinkReset(SSP_MPD_SLOT, 0xffffffff);
 
@@ -707,14 +694,10 @@ void ssp_mpd_setup()
   //END of MPD configure
 
   // summary report
-  bufp = (char *) &(apvbuffer[0]);
+  DALMA_INIT;
 
-  rval = sprintf(bufp, "\n");
-  if(rval > 0)
-    bufp += rval;
-  rval = sprintf(bufp, "Configured APVs (ADC 15 ... 0)\n");
-  if(rval > 0)
-    bufp += rval;
+  DALMA_MSG("\n");
+  DALMA_MSG("Configured APVs (ADC 15 ... 0)\n");
 
   int ibit;
   int impd, id, iapv;
@@ -724,61 +707,44 @@ void ssp_mpd_setup()
 
       if (mpdGetApvEnableMask(id) != 0)
 	{
-	  rval = sprintf(bufp, "  MPD %2d : ", id);
-	  if(rval > 0)
-	    bufp += rval;
+	  DALMA_MSG("  MPD %2d : ", id);
+
 	  iapv = 0;
 	  for (ibit = 15; ibit >= 0; ibit--)
 	    {
 	      if (((ibit + 1) % 4) == 0)
 		{
-		  rval = sprintf(bufp, " ");
-		  if(rval > 0)
-		    bufp += rval;
+		  DALMA_MSG(" ");
 		}
 	      if (mpdGetApvEnableMask(id) & (1 << ibit))
 		{
-		  rval = sprintf(bufp, "1");
-		  if(rval > 0)
-		    bufp += rval;
+		  DALMA_MSG("1");
 		  iapv++;
 		}
 	      else
 		{
-		  rval = sprintf(bufp, ".");
-		  if(rval > 0)
-		    bufp += rval;
+		  DALMA_MSG(".");
 		}
 	    }
-	  rval = sprintf(bufp, " (#APV %d)", iapv);
-	  if(rval > 0)
-	    bufp += rval;
+	  DALMA_MSG(" (#APV %d)", iapv);
 	  if(errSlotMask & (1 << id))
 	    {
-	      rval = sprintf(bufp, " INIT ERRORS\n");
-	      if(rval > 0)
-		bufp += rval;
+	      DALMA_MSG(" INIT ERRORS\n");
 	    }
 	  else
 	    {
-	      rval = sprintf(bufp, "\n");
-	      if(rval > 0)
-		bufp += rval;
+	      DALMA_MSG("\n");
 	    }
 	}
       else
 	{
-	  rval = sprintf(bufp,
-			 "  MPD %2d :                                INIT ERRORS\n", id);
-	  if(rval > 0)
-	    bufp += rval;
+	  DALMA_MSG("  MPD %2d :                                INIT ERRORS\n", id);
 	}
     }
-  rval = sprintf(bufp, "\n");
-  if(rval > 0)
-    bufp += rval;
+  DALMA_MSG("\n");
 
-  printf("%s",apvbuffer);
+  DALMA_LOG;
+
 
 #ifdef OLDOUTPUT
   for (impd = 0; impd < fnMPD; impd++)
@@ -831,8 +797,8 @@ sspMpd_Download(char *configFilename)
     }
 
 
-  apvbuffer = (char *)malloc(1024*50*sizeof(char));
-  errorbuffer = (char *)malloc(1024*50*sizeof(char));
+  apvbuffer = (char *)malloc(1024*sizeof(char));
+  errorbuffer = (char *)malloc(1024*sizeof(char));
 
 #ifdef TI_MASTER
   /*****************
@@ -993,7 +959,7 @@ sspMpd_Trigger(int arg)
 
       printf("*** Status of MPD and SSP before reset ***\n");
       sspMpdPrintStatus(SSP_MPD_SLOT);
-      sspPrintMPD_OB_STATUS(1);
+      sspPrintMPD_OB_STATUS(0);
       sspMpdDalogStatus(SSP_MPD_SLOT, mpdGetSSPFiberMask(SSP_MPD_SLOT));
       printf("xb_debug mpdGStatus============================================\n");
       mpdGStatus(1);
@@ -1236,8 +1202,9 @@ setSSPData(int enable)
   vmeBusUnlock();
 }
 
+
 /*
   Local Variables:
-  compile-command: "make -k
+  compile-command: "make -k "
   End:
 */
